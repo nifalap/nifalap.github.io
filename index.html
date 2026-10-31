@@ -131,17 +131,25 @@
   .term-bar i:nth-child(2) { background: #febc2e; }
   .term-bar i:nth-child(3) { background: #28c840; }
   .term-bar span { margin-left: 10px; color: var(--muted); font-size: .75rem; }
-  .term-body {
-    padding: 16px 18px; height: 340px; overflow: hidden;
-    white-space: pre-wrap; word-break: break-word; color: #c9d1d9;
+  .term-bar .live { margin-left: auto; display: flex; align-items: center; gap: 6px; color: var(--accent); }
+  .feed {
+    height: 362px; overflow: hidden;
+    mask-image: linear-gradient(#000 75%, transparent);
+    -webkit-mask-image: linear-gradient(#000 75%, transparent);
   }
-  .term-body .p { color: var(--accent); }
-  .term-body .c { color: var(--text); }
-  .term-body .o { color: var(--muted); }
-  .term-body .r { color: var(--red); }
-  .term-body .b { color: var(--accent2); }
-  .cursor { display: inline-block; width: 8px; height: 1em; background: var(--accent); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0 } }
+  .alert {
+    display: grid; grid-template-columns: 64px 50px 1fr; gap: 12px; align-items: center;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    color: #c9d1d9; font-size: .74rem;
+    animation: slide .5s ease;
+  }
+  @keyframes slide { from { opacity: 0; transform: translateY(-10px); background: rgba(61, 220, 151, .08); } }
+  .alert time { color: var(--muted); }
+  .sev { font-size: .64rem; font-weight: 600; padding: 2px 0; border-radius: 4px; text-align: center; }
+  .sev.crit { background: rgba(255, 107, 107, .15); color: var(--red); }
+  .sev.high { background: rgba(255, 159, 67, .15); color: #ff9f43; }
+  .sev.med { background: rgba(255, 209, 102, .13); color: #ffd166; }
+  .sev.low { background: rgba(61, 220, 151, .13); color: var(--accent); }
 
   .scroll-hint {
     position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
@@ -262,9 +270,9 @@
     </div>
   </div>
 
-  <div class="terminal" aria-label="Terminal showing commands from my projects">
-    <div class="term-bar"><i></i><i></i><i></i><span>investigation.log</span></div>
-    <div class="term-body" id="term"></div>
+  <div class="terminal" aria-label="Alert feed with findings from my projects">
+    <div class="term-bar"><i></i><i></i><i></i><span>alert feed · from my projects</span><span class="live"><span class="dot"></span>live</span></div>
+    <div class="feed" id="feed"></div>
   </div>
 
   <div class="scroll-hint">scroll ↓</div>
@@ -279,7 +287,7 @@
     <a class="card reveal" href="https://github.com/nifalap/Network-Traffic-Analysis">
       <div class="media">
         <img class="left" src="images/netsupport-c2.png" alt="Wireshark showing NetSupport RAT check-ins">
-        <span class="num">04</span>
+        <span class="num">CASE-004 · closed</span>
       </div>
       <div class="body">
         <h3>Network Traffic Analysis</h3>
@@ -300,7 +308,7 @@ dmarc=<span class="ok">pass</span>
 
 link:  kif.re.kr/viewer.aspx?returnurl=
        <span class="bad">taurus-online.ch/wp/pf/</span></pre>
-        <span class="num">03</span>
+        <span class="num">CASE-003 · closed</span>
       </div>
       <div class="body">
         <h3>Phishing Email Analysis</h3>
@@ -313,7 +321,7 @@ link:  kif.re.kr/viewer.aspx?returnurl=
     <a class="card reveal" href="https://github.com/nifalap/SOC-Alert-Automation">
       <div class="media">
         <img src="images/shuffle-workflow.png" alt="Shuffle workflow from Wazuh to VirusTotal to TheHive">
-        <span class="num">02</span>
+        <span class="num">CASE-002 · closed</span>
       </div>
       <div class="body">
         <h3>SOC Alert Automation</h3>
@@ -326,7 +334,7 @@ link:  kif.re.kr/viewer.aspx?returnurl=
     <a class="card reveal" href="https://github.com/nifalap/Splunk-SIEM-Home-Lab">
       <div class="media">
         <img src="images/splunk-architecture.png" alt="Splunk home lab architecture diagram">
-        <span class="num">01</span>
+        <span class="num">CASE-001 · closed</span>
       </div>
       <div class="body">
         <h3>Splunk SIEM Home Lab</h3>
@@ -364,51 +372,31 @@ link:  kif.re.kr/viewer.aspx?returnurl=
   }, { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-  // terminal: commands and findings from my projects
-  const script = [
-    ['c', 'tshark -r easy-as-123.pcap -Y \'http.user_agent contains "NetSupport"\''],
-    ['o', '10.2.28.88 → 45.131.214.85:443  POST /fakeurl.htm'],
-    ['o', '10.2.28.88 → 45.131.214.85:443  POST /fakeurl.htm'],
-    ['r', '[!] beaconing every 60s · 264 check-ins'],
-    ['c', 'python parse_eml.py ftx-withdrawal.eml'],
-    ['o', 'SPF: pass   DKIM: pass   DMARC: pass'],
-    ['r', '[!] link → open redirect → taurus-online.ch/wp/pf/'],
-    ['c', 'grep -l "woondsplay.com" samples/*.eml | wc -l'],
-    ['b', '10'],
-    ['c', 'schtasks /create /tn "LabTest-Updater" /tr "notepad.exe" /sc daily /st 23:59'],
-    ['b', 'wazuh rule 100003 (level 12) → shuffle → virustotal → thehive  ~8s'],
+  // alert feed: real findings from my projects
+  const alerts = [
+    ['crit', 'NetSupport RAT C2 check-in 10.2.28.88 → 45.131.214.85:443'],
+    ['high', 'ZPHP fake update domain modandcrackedapk.com'],
+    ['med',  'HTTP POST on port 443 without TLS'],
+    ['high', 'schtasks /create LabTest-Updater (rule 100003)'],
+    ['med',  'SPF/DKIM/DMARC pass, link goes to open redirect'],
+    ['low',  'Reply-To domain does not match From'],
+    ['high', 'PowerShell -EncodedCommand detected'],
+    ['med',  'Same link domain across 10 phishing emails'],
+    ['crit', 'PowerShell payload 29842.ps1 from 5.252.153.241'],
+    ['low',  'Failed logon 4625 on test account'],
   ];
-  const term = document.getElementById('term');
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-  async function run() {
-    while (true) {
-      term.innerHTML = '';
-      for (const [type, text] of script) {
-        const line = document.createElement('div');
-        term.appendChild(line);
-        if (type === 'c') {
-          line.innerHTML = '<span class="p">$ </span><span class="c"></span><span class="cursor"></span>';
-          const span = line.querySelector('.c');
-          for (const ch of text) { span.textContent += ch; if (!reduce) await sleep(22); }
-          line.querySelector('.cursor').remove();
-          await sleep(reduce ? 0 : 350);
-        } else {
-          line.className = type;
-          line.textContent = text;
-          await sleep(reduce ? 0 : 260);
-        }
-        term.scrollTop = term.scrollHeight;
-      }
-      const end = document.createElement('div');
-      end.innerHTML = '<span class="p">$ </span><span class="cursor"></span>';
-      term.appendChild(end);
-      if (reduce) return;
-      await sleep(5000);
-    }
+  const feed = document.getElementById('feed');
+  let n = 0;
+  function push() {
+    const [sev, msg] = alerts[n++ % alerts.length];
+    const row = document.createElement('div');
+    row.className = 'alert';
+    row.innerHTML = `<time>${new Date().toTimeString().slice(0, 8)}</time><span class="sev ${sev}">${sev.toUpperCase()}</span><span>${msg}</span>`;
+    feed.prepend(row);
+    if (feed.children.length > 9) feed.lastChild.remove();
   }
-  run();
+  for (let k = 0; k < 7; k++) push();
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(push, 2200);
 </script>
 </body>
 </html>
