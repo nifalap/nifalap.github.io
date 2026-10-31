@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saad Ahmad | SOC Projects</title>
+<meta name="description" content="Saad Ahmad - SOC analyst home labs, malware traffic investigations and phishing analysis">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090c;
+    --bg2: #0d1117;
+    --card: #10151c;
+    --border: #1e2630;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #3ddc97;
+    --accent2: #58a6ff;
+    --red: #ff6b6b;
+    --mono: "JetBrains Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* nav */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 28px;
+    background: rgba(7, 9, 12, 0.7);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid transparent;
+    transition: border-color .3s;
+  }
+  nav.scrolled { border-bottom-color: var(--border); }
+  .logo { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+  .logo span { color: var(--muted); }
+  nav ul { list-style: none; display: flex; gap: 26px; margin: 0; padding: 0; font-size: .92rem; }
+  nav ul a { color: var(--muted); transition: color .2s; }
+  nav ul a:hover { color: var(--text); }
+
+  /* hero */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    align-items: center;
+    gap: 48px;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 110px 28px 60px;
+  }
+  .grid-bg {
+    position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 46px 46px;
+    opacity: .35;
+    mask-image: radial-gradient(ellipse at 40% 45%, #000 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at 40% 45%, #000 20%, transparent 70%);
+  }
+  .glow {
+    position: absolute; z-index: -1; pointer-events: none;
+    width: 520px; height: 520px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(61, 220, 151, .16), transparent 65%);
+    top: 18%; left: -6%;
+    filter: blur(10px);
+  }
+  .status {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: .8rem; color: var(--accent);
+    border: 1px solid rgba(61, 220, 151, .35);
+    background: rgba(61, 220, 151, .07);
+    padding: 4px 12px; border-radius: 999px;
+    margin-bottom: 22px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
+  h1 {
+    font-size: clamp(2.6rem, 6vw, 4.4rem);
+    line-height: 1.05;
+    margin: 0 0 18px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  h1 .hl {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { color: var(--muted); font-size: 1.1rem; max-width: 520px; margin: 0 0 30px; }
+  .buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    padding: 11px 20px; border-radius: 8px; font-weight: 600; font-size: .95rem;
+    transition: transform .15s, background .2s, border-color .2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.primary { background: var(--accent); color: #04130c; }
+  .btn.ghost { border: 1px solid var(--border); color: var(--text); }
+  .btn.ghost:hover { border-color: var(--muted); }
+
+  /* terminal */
+  .terminal {
+    background: rgba(13, 17, 23, .92);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 0 0 1px rgba(61, 220, 151, .05);
+    overflow: hidden;
+    font-family: var(--mono);
+    font-size: .8rem;
+  }
+  .term-bar {
+    display: flex; align-items: center; gap: 7px;
+    padding: 11px 14px; border-bottom: 1px solid var(--border);
+    background: #0b0f14;
+  }
+  .term-bar i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  .term-bar i:nth-child(1) { background: #ff5f57; }
+  .term-bar i:nth-child(2) { background: #febc2e; }
+  .term-bar i:nth-child(3) { background: #28c840; }
+  .term-bar span { margin-left: 10px; color: var(--muted); font-size: .75rem; }
+  .term-body {
+    padding: 16px 18px; height: 340px; overflow: hidden;
+    white-space: pre-wrap; word-break: break-word; color: #c9d1d9;
+  }
+  .term-body .p { color: var(--accent); }
+  .term-body .c { color: var(--text); }
+  .term-body .o { color: var(--muted); }
+  .term-body .r { color: var(--red); }
+  .term-body .b { color: var(--accent2); }
+  .cursor { display: inline-block; width: 8px; height: 1em; background: var(--accent); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0 } }
+
+  .scroll-hint {
+    position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+    color: var(--muted); font-family: var(--mono); font-size: .75rem;
+    animation: bob 2s ease-in-out infinite;
+  }
+  @keyframes bob { 50% { transform: translate(-50%, 6px) } }
+
+  /* sections */
+  section { max-width: 1180px; margin: 0 auto; padding: 90px 28px 40px; }
+  .section-label { font-family: var(--mono); color: var(--accent); font-size: .85rem; margin-bottom: 8px; }
+  h2 { font-size: clamp(1.8rem, 3.5vw, 2.4rem); margin: 0 0 12px; letter-spacing: -0.02em; }
+  .section-sub { color: var(--muted); margin: 0 0 40px; max-width: 620px; }
+
+  .projects { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform .25s, border-color .25s, box-shadow .25s;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(61, 220, 151, .45);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .45);
+  }
+  .card .media { height: 210px; overflow: hidden; border-bottom: 1px solid var(--border); background: #0b0f14; position: relative; }
+  .card .media img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; display: block; }
+  .card:hover .media img { transform: scale(1.05); }
+  .card .media img.left { object-position: left top; }
+  .num {
+    position: absolute; top: 12px; left: 12px;
+    font-family: var(--mono); font-size: .75rem;
+    background: rgba(7, 9, 12, .8); border: 1px solid var(--border);
+    padding: 2px 9px; border-radius: 6px; color: var(--accent);
+  }
+  .snippet {
+    height: 100%; padding: 46px 20px 20px; margin: 0;
+    font-family: var(--mono); font-size: .76rem; line-height: 1.7; color: var(--muted);
+    white-space: pre; overflow: hidden;
+  }
+  .snippet .ok { color: var(--accent); }
+  .snippet .bad { color: var(--red); }
+  .card .body { padding: 22px 22px 24px; display: flex; flex-direction: column; flex: 1; }
+  .card h3 { margin: 0 0 8px; font-size: 1.2rem; }
+  .card p { color: var(--muted); margin: 0 0 16px; font-size: .95rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .tags span {
+    font-family: var(--mono); font-size: .72rem;
+    color: var(--accent2); background: rgba(88, 166, 255, .08);
+    border: 1px solid rgba(88, 166, 255, .2);
+    padding: 2px 8px; border-radius: 5px;
+  }
+  .card .link { margin-top: auto; font-weight: 600; font-size: .9rem; color: var(--accent); }
+  .card .link::after { content: " →"; transition: margin .2s; }
+  .card:hover .link::after { margin-left: 4px; }
+
+  .tools { display: flex; flex-wrap: wrap; gap: 10px; }
+  .tools span {
+    border: 1px solid var(--border); background: var(--card);
+    border-radius: 8px; padding: 8px 14px; font-size: .92rem;
+    transition: border-color .2s, color .2s;
+  }
+  .tools span:hover { border-color: var(--accent); color: var(--accent); }
+
+  footer {
+    max-width: 1180px; margin: 60px auto 0; padding: 30px 28px 50px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    color: var(--muted); font-size: .9rem;
+  }
+  footer a:hover { color: var(--accent); }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 100px; gap: 36px; }
+    .projects { grid-template-columns: 1fr; }
+    .scroll-hint { display: none; }
+  }
+  @media (max-width: 560px) {
+    nav { padding: 14px 16px; }
+    nav ul { gap: 16px; font-size: .85rem; }
+    .hero, section, footer { padding-left: 16px; padding-right: 16px; }
+    .term-body { height: 300px; font-size: .72rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a class="logo" href="#top">saad<span>@soc:~$</span></a>
+  <ul>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="https://github.com/nifalap">GitHub</a></li>
+  </ul>
+</nav>
+
+<header class="hero" id="top">
+  <div class="grid-bg"></div>
+  <div class="glow"></div>
+  <div>
+    <div class="status"><span class="dot"></span>Open to entry-level SOC roles</div>
+    <h1>Saad Ahmad<br><span class="hl">SOC Analyst</span></h1>
+    <p class="lead">I build home labs and work through real malware and phishing samples to practice what a SOC analyst does every day: collecting logs, writing detections, automating alerts and investigating what fired.</p>
+    <div class="buttons">
+      <a class="btn primary" href="#projects">See my projects</a>
+      <a class="btn ghost" href="https://github.com/nifalap">GitHub</a>
+    </div>
+  </div>
+
+  <div class="terminal" aria-label="Terminal showing commands from my projects">
+    <div class="term-bar"><i></i><i></i><i></i><span>investigation.log</span></div>
+    <div class="term-body" id="term"></div>
+  </div>
+
+  <div class="scroll-hint">scroll ↓</div>
+</header>
+
+<section id="projects">
+  <div class="section-label reveal">// projects</div>
+  <h2 class="reveal">What I've built and investigated</h2>
+  <p class="section-sub reveal">Each one has a GitHub repo with the full write-up, configs and screenshots.</p>
+
+  <div class="projects">
+    <a class="card reveal" href="https://github.com/nifalap/Network-Traffic-Analysis">
+      <div class="media">
+        <img class="left" src="images/netsupport-c2.png" alt="Wireshark showing NetSupport RAT check-ins">
+        <span class="num">04</span>
+      </div>
+      <div class="body">
+        <h3>Network Traffic Analysis</h3>
+        <p>Three real malware infections investigated from packet captures. Found the infected machine and user, how it got infected and the C2 servers, then wrote an incident report for each. One started with 19 IDS alerts where most were just noise.</p>
+        <div class="tags"><span>Wireshark</span><span>tshark</span><span>NetSupport RAT</span><span>MITRE ATT&amp;CK</span></div>
+        <span class="link">View project</span>
+      </div>
+    </a>
+
+    <a class="card reveal" href="https://github.com/nifalap/Phishing-Email-Analysis">
+      <div class="media">
+<pre class="snippet">From: FTXinsurance &lt;noreplye@promotix.com&gt;
+Subject: Withdraw Process is Authorized Now !
+
+spf=<span class="ok">pass</span>   smtp.mailfrom=amazonses.com
+dkim=<span class="ok">pass</span>  header.d=promotix.com
+dmarc=<span class="ok">pass</span>
+
+link:  kif.re.kr/viewer.aspx?returnurl=
+       <span class="bad">taurus-online.ch/wp/pf/</span></pre>
+        <span class="num">03</span>
+      </div>
+      <div class="body">
+        <h3>Phishing Email Analysis</h3>
+        <p>Triage of real phishing emails from a honeypot collection: headers, SPF/DKIM/DMARC, the real sending path, and links and attachments without opening them. Two passed every check and were still phishing. One was part of a campaign in 10 of the 39 emails I pulled.</p>
+        <div class="tags"><span>Email headers</span><span>SPF/DKIM/DMARC</span><span>Python</span><span>IOCs</span></div>
+        <span class="link">View project</span>
+      </div>
+    </a>
+
+    <a class="card reveal" href="https://github.com/nifalap/SOC-Alert-Automation">
+      <div class="media">
+        <img src="images/shuffle-workflow.png" alt="Shuffle workflow from Wazuh to VirusTotal to TheHive">
+        <span class="num">02</span>
+      </div>
+      <div class="body">
+        <h3>SOC Alert Automation</h3>
+        <p>Wazuh catches a scheduled task being created on a Windows VM, Shuffle checks the file hash on VirusTotal, and an alert lands in TheHive with the details filled in. About 8 seconds, no manual steps. Then I worked the case and closed it.</p>
+        <div class="tags"><span>Wazuh</span><span>Shuffle</span><span>TheHive</span><span>VirusTotal</span><span>Docker</span></div>
+        <span class="link">View project</span>
+      </div>
+    </a>
+
+    <a class="card reveal" href="https://github.com/nifalap/Splunk-SIEM-Home-Lab">
+      <div class="media">
+        <img src="images/splunk-architecture.png" alt="Splunk home lab architecture diagram">
+        <span class="num">01</span>
+      </div>
+      <div class="body">
+        <h3>Splunk SIEM Home Lab</h3>
+        <p>My first lab. A Windows 11 VM running Sysmon forwards logs to Splunk Enterprise on Ubuntu. I wrote SPL searches to catch encoded PowerShell and failed logins and put them on a dashboard.</p>
+        <div class="tags"><span>Splunk</span><span>SPL</span><span>Sysmon</span><span>VirtualBox</span></div>
+        <span class="link">View project</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<section id="tools">
+  <div class="section-label reveal">// tools</div>
+  <h2 class="reveal">Tools I've used</h2>
+  <div class="tools reveal">
+    <span>Splunk</span><span>Wazuh</span><span>Sysmon</span><span>Shuffle</span><span>TheHive</span><span>VirusTotal</span>
+    <span>Wireshark</span><span>tshark</span><span>Python</span><span>Docker</span><span>VirtualBox</span><span>Ubuntu</span>
+    <span>Windows Event Logs</span><span>MITRE ATT&amp;CK</span>
+  </div>
+</section>
+
+<footer>
+  <span>Saad Ahmad</span>
+  <a href="https://github.com/nifalap">github.com/nifalap</a>
+</footer>
+
+<script>
+  // nav border on scroll
+  const nav = document.getElementById('nav');
+  addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 10));
+
+  // fade sections in as they scroll into view
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // terminal: commands and findings from my projects
+  const script = [
+    ['c', 'tshark -r easy-as-123.pcap -Y \'http.user_agent contains "NetSupport"\''],
+    ['o', '10.2.28.88 → 45.131.214.85:443  POST /fakeurl.htm'],
+    ['o', '10.2.28.88 → 45.131.214.85:443  POST /fakeurl.htm'],
+    ['r', '[!] beaconing every 60s · 264 check-ins'],
+    ['c', 'python parse_eml.py ftx-withdrawal.eml'],
+    ['o', 'SPF: pass   DKIM: pass   DMARC: pass'],
+    ['r', '[!] link → open redirect → taurus-online.ch/wp/pf/'],
+    ['c', 'grep -l "woondsplay.com" samples/*.eml | wc -l'],
+    ['b', '10'],
+    ['c', 'schtasks /create /tn "LabTest-Updater" /tr "notepad.exe" /sc daily /st 23:59'],
+    ['b', 'wazuh rule 100003 (level 12) → shuffle → virustotal → thehive  ~8s'],
+  ];
+  const term = document.getElementById('term');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  async function run() {
+    while (true) {
+      term.innerHTML = '';
+      for (const [type, text] of script) {
+        const line = document.createElement('div');
+        term.appendChild(line);
+        if (type === 'c') {
+          line.innerHTML = '<span class="p">$ </span><span class="c"></span><span class="cursor"></span>';
+          const span = line.querySelector('.c');
+          for (const ch of text) { span.textContent += ch; if (!reduce) await sleep(22); }
+          line.querySelector('.cursor').remove();
+          await sleep(reduce ? 0 : 350);
+        } else {
+          line.className = type;
+          line.textContent = text;
+          await sleep(reduce ? 0 : 260);
+        }
+        term.scrollTop = term.scrollHeight;
+      }
+      const end = document.createElement('div');
+      end.innerHTML = '<span class="p">$ </span><span class="cursor"></span>';
+      term.appendChild(end);
+      if (reduce) return;
+      await sleep(5000);
+    }
+  }
+  run();
+</script>
+</body>
+</html>
